@@ -38,15 +38,15 @@ struct Opt {
     #[structopt(
         short = "r",
         long = "rpc_url",
-        default_value = "https://rpc-testnet.ata.network",
-        help = "Default: Automata Testnet RPC"
+        default_value = "http://localhost:8545",
+        help = "Default: localhost:8545"
     )]
     rpc_url: String,
     #[structopt(
         short = "c",
         long = "chain_id",
-        default_value = "1398243",
-        help = "Default: Automata Testnet Chain ID"
+        default_value = "31337",
+        help = "Default: localhost"
     )]
     chain_id: u64,
 

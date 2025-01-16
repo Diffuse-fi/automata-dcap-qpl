@@ -5,13 +5,12 @@ use automata_dcap_qpl_contracts::{
     fmspc_tcb_dao::{FmspcTcbDao, TcbInfoJsonObj},
     pck_dao::PckDao,
     pcs_dao::PcsDao,
-    ENCLAVE_IDENTITY_DAO_PORTAL_CONTRACT_ADDRESS, FMSPC_TCB_DAO_PORTAL_CONTRACT_ADDRESS,
-    PCK_DAO_PORTAL_CONTRACT_ADDRESS, PCS_DAO_PORTAL_CONTRACT_ADDRESS,
 };
 use ethers::prelude::*;
 use hex::FromHex;
 use openssl::x509::{X509Crl, X509};
 use std::{str::FromStr, sync::Arc};
+use std::env;
 
 pub fn upsert_pck_cert(
     prv_key: &str,
@@ -31,8 +30,13 @@ pub fn upsert_pck_cert(
         provider,
         wallet.with_chain_id(chain_id),
     ));
-    let pck_dao_address = PCK_DAO_PORTAL_CONTRACT_ADDRESS.parse::<Address>().unwrap();
+
+    let mut pck_dao_str = env::var("PCK_DAO")
+        .expect("PCK_DAO env var not set");
+    pck_dao_str = pck_dao_str.trim_start_matches("0x").to_string();
+    let pck_dao_address = pck_dao_str.parse::<Address>().unwrap();
     let pck_dao = PckDao::new(pck_dao_address, signer.clone());
+
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
@@ -60,8 +64,12 @@ pub fn upsert_pck_cert(
     }
     assert_eq!(certs.len(), 3);
 
-    let pcs_dao_address = PCS_DAO_PORTAL_CONTRACT_ADDRESS.parse::<Address>().unwrap();
+    let mut pcs_dao_str = env::var("PCS_DAO")
+        .expect("PCS_DAO env var not set");
+    pcs_dao_str = pcs_dao_str.trim_start_matches("0x").to_string();
+    let pcs_dao_address = pcs_dao_str.parse::<Address>().unwrap();
     let pcs_dao = PcsDao::new(pcs_dao_address, signer.clone());
+
     // TODO: Check the Root and Platform/Process intermediate certs before upsert
     match rt.block_on(
         pcs_dao
@@ -184,13 +192,20 @@ pub fn upsert_enclave_identity(
         provider,
         wallet.with_chain_id(chain_id),
     ));
-    let pcs_dao_address = PCS_DAO_PORTAL_CONTRACT_ADDRESS.parse::<Address>().unwrap();
+
+    let mut pcs_dao_str = env::var("PCS_DAO")
+        .expect("PCS_DAO env var not set");
+    pcs_dao_str = pcs_dao_str.trim_start_matches("0x").to_string();
+    let pcs_dao_address = pcs_dao_str.parse::<Address>().unwrap();
     let pcs_dao = PcsDao::new(pcs_dao_address, signer.clone());
-    let enclave_identity_dao_address = ENCLAVE_IDENTITY_DAO_PORTAL_CONTRACT_ADDRESS
-        .parse::<Address>()
-        .unwrap();
+
+    let mut enclave_identity_dao_str = env::var("ENCLAVE_ID_DAO")
+        .expect("ENCLAVE_ID_DAO env var not set");
+    enclave_identity_dao_str = enclave_identity_dao_str.trim_start_matches("0x").to_string();
+    let enclave_identity_dao_address = enclave_identity_dao_str.parse::<Address>().unwrap();
     let enclave_identity_dao =
         EnclaveIdentityDao::new(enclave_identity_dao_address, signer.clone());
+
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
@@ -321,7 +336,11 @@ pub fn upsert_root_ca_crl(prv_key: &str, rpc_url: String, chain_id: u64, crl: &s
         provider,
         wallet.with_chain_id(chain_id),
     ));
-    let pcs_dao_address = PCS_DAO_PORTAL_CONTRACT_ADDRESS.parse::<Address>().unwrap();
+    let mut pcs_dao_str = env::var("PCS_DAO")
+        .expect("PCS_DAO env var not set");
+    pcs_dao_str = pcs_dao_str.trim_start_matches("0x").to_string();
+
+    let pcs_dao_address = pcs_dao_str.parse::<Address>().unwrap();
     let pcs_dao = PcsDao::new(pcs_dao_address, signer.clone());
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
@@ -379,11 +398,17 @@ pub fn update_verification_collateral(
         .enable_all()
         .build()
         .unwrap();
-    let pcs_dao_address = PCS_DAO_PORTAL_CONTRACT_ADDRESS.parse::<Address>().unwrap();
+
+    let mut pcs_dao_str = env::var("PCS_DAO")
+        .expect("PCS_DAO env var not set");
+    pcs_dao_str = pcs_dao_str.trim_start_matches("0x").to_string();
+    let pcs_dao_address = pcs_dao_str.parse::<Address>().unwrap();
     let pcs_dao = PcsDao::new(pcs_dao_address, signer.clone());
-    let fmspc_tcb_dao_address = FMSPC_TCB_DAO_PORTAL_CONTRACT_ADDRESS
-        .parse::<Address>()
-        .unwrap();
+
+    let mut fmspc_tcb_dao_str = env::var("FMSPC_TCB_DAO")
+        .expect("FMSPC_TCB_DAO env var not set");
+    fmspc_tcb_dao_str = fmspc_tcb_dao_str.trim_start_matches("0x").to_string();
+    let fmspc_tcb_dao_address = fmspc_tcb_dao_str.parse::<Address>().unwrap();
     let fmspc_tcb_dao = FmspcTcbDao::new(fmspc_tcb_dao_address, signer.clone());
 
     // Root CA CRL
